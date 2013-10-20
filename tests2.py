@@ -140,14 +140,16 @@ def pz(p,T,m,n,dim,beta):
     pb = -10
     pf = 10
     dp = 0.1
+    
     m2 = m**2
     gamma = 1/sqrt(1-beta[0]**2)
-    norm = 1/numIntegral(JuttnerDist,-100,100,args=(m,dim,gamma,T,beta))
-    normconst = 1/(sqrt(2*pi*T)*m**((dim+1)/2)*gamma**((dim/2) -2)*sp.kv((dim+1)/2,m/T))
+    norm = 1/numIntegral(JuttnerDist,-10,10,args=(m,dim,gamma,T,beta),divmax = 10)
+    normconst = 1/(sqrt(2*pi*T)*m**((dim+1)/2)*gamma**((dim/2)-2)*sp.kv((dim+1)/2,m/T))
     momrange= arange(pb,pf,dp)
     print(norm)
     print(normconst)
     Juttner = zeros(len(momrange))
+    Juttner2 = zeros(len(momrange))
     momz = zeros(n)
     v = zeros(n)
     for i in xrange(n):
@@ -160,12 +162,14 @@ def pz(p,T,m,n,dim,beta):
     g = 0
     for x in momrange:
         Juttner[g] = n*dp*norm*(x**2 + m2)**(dim/4)*sp.kv(dim/2,sqrt(x**2 +m2)*gamma/T)*e**(gamma*beta[0]*x/T)
+        Juttner2[g] = n*dp*normconst*(x**2 + m2)**(dim/4)*sp.kv(dim/2,sqrt(x**2 +m2)*gamma/T)*e**(gamma*beta[0]*x/T)
         g += 1
     weights = ones([1,n])
     y,binEdges=np.histogram(momz,bins=len(momrange),range=(pb,pf),weights=weights[0])
     menStd = sqrt((y-(y/n)))
     errorbar(momrange,y, yerr=menStd, fmt='ro') 
-    plot(momrange,Juttner)
+    plot(momrange,Juttner,hold=True)
+    plot(momrange,Juttner2)
 #*(1/hyperGeom((dim+2)/2,0.25*(gamma*beta*a/T)**2))
         
         

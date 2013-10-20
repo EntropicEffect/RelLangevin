@@ -16,8 +16,6 @@ cimport cython
 def pupdate(np.ndarray[dtype_t,ndim=3] p,int N,double mu,double T,double dt,int NumParticles,int dim,double m2):
     cdef double ener
     cdef int i,n,c,d
-    cdef double Dconst
-    Dconst = mu*T
     d = 0
     c = 1
     for i in xrange(N-1):
@@ -25,9 +23,9 @@ def pupdate(np.ndarray[dtype_t,ndim=3] p,int N,double mu,double T,double dt,int 
              ener  = np.sqrt(m2+ p[0][n].dot(p[0][n]))
              drag = - p[0][n]*dt*mu
              noise = np.random.randn(dim)
-            # dp = drag + np.sqrt(2*Dconst*ener*dt)*noise
-             #ener = np.sqrt(m2 + (p[0][n]+dp[:]).dot((p[0][n]+dp[:])))
-             p[1][n] = p[0][n] + drag  + np.sqrt(2*Dconst*ener*dt)*noise
+             #dp = drag + np.sqrt(2*mu*T*ener*dt/(1-T/ener))*noise
+            # ener = np.sqrt(m2 + (p[0][n]+dp[:]).dot((p[0][n]+dp[:])))
+             p[1][n] = p[0][n] + drag  + np.sqrt(2*mu*(ener+T)*T)*noise
         p[0] = p[1]
         d += 1
         if (d==N/10):

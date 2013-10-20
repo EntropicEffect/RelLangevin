@@ -18,16 +18,16 @@ dim =3
 T = 0.45 #Gev
 m = 1.5 #Gev
 t = 15. #Gev-1
-N = 500
+N = 1000
 dt = t/N #Gev-
 mu = (pi*sqrtL*T**2)/(2*m)
-NumParticles = 10000
+NumParticles = 2000
 
 table = tables.openFile('NP10k','w')
 atom = tables.Atom.from_dtype(dtype('Float64'))
 pstore = table.createCArray(table.root,'Momentum',atom,[NumParticles,dim])
 
-p = ones([2,NumParticles,dim])
+p = ones([2,NumParticles,dim])*randn(2,NumParticles,dim)*20
 
 m2 = m**2
 
