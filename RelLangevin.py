@@ -17,11 +17,11 @@ sqrtL= sqrt(lamda)
 dim =3
 T = 0.45 #Gev
 m = 1.5 #Gev
-t = 6. #Gev-1
-N = 400
+t = 15. #Gev-1
+N = 500
 dt = t/N #Gev-
 mu = (pi*sqrtL*T**2)/(2*m)
-NumParticles = 15000
+NumParticles = 10000
 
 table = tables.openFile('NP10k','w')
 atom = tables.Atom.from_dtype(dtype('Float64'))

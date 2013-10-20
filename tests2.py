@@ -8,8 +8,11 @@ from pylab import *
 import scipy.special as sp
 from scipy.special import gamma as Gamma
 from scipy.special import hyp0f1 as hyperGeom
+from scipy.integrate import romberg as numIntegral
 k =1
-
+def JuttnerDist(x,m,dim,gamma,T,beta):
+    m2 =m**2
+    return (x**2 + m2)**(dim/4)*sp.kv(dim/2,sqrt(x**2 +m2)*gamma/T)*e**(gamma*beta[0]*x/T)
 def BoostVector(beta,m,p):
     m2 = m**2
     N = int(len(beta))
@@ -41,7 +44,7 @@ def BoostVector(beta,m,p):
     
 def MED2(p,T,m,n,dim):  
     """ p,T,m,n,dim """
-    de = T/20
+    de = T/50 
     ef = 4.5
     normconst = (2./m*k*T)**((dim-1)/2.)/sqrt(pi) *sp.kv((dim+1)/2.,(1.*m)/(k*T))*Gamma((dim/2.))
     energy = zeros([1,n])
@@ -69,20 +72,23 @@ def MED2(p,T,m,n,dim):
     
     
 def boostDist(p,T,m,n,dim,beta):
-    dp = 0.5
-    pf = 160
+    dp = 0.2
+    pf = 15
     m2 = m**2
+    v = zeros(n)
     
     gamma = 1/(sqrt(1-beta[0]**2))
     for i in range(n):
-        fourVector = zeros([1,dim+1])
-        fourVector[0,0] = sqrt(p[i].dot(p[i]) + m2)
-        fourVector[0,1:dim+1] = p[i]
-
-        fourVector = BoostVector(beta,m,p[i]).dot(fourVector.T)
-    
-        for k in range(dim):
-            p[i][k] = fourVector[k+1]
+#        fourVector = zeros([1,dim+1])
+#        fourVector[0,0] = sqrt(p[i].dot(p[i]) + m2)
+#        fourVector[0,1:dim+1] = p[i]
+#
+#        fourVector = BoostVector(beta,m,p[i]).dot(fourVector.T)
+#    
+#        for k in range(dim):
+         v[i] = p[i][2]/sqrt(m2+ p[i].dot(p[i]))
+         v[i] = (v[i] + beta[0])/(1+beta[0]*v[i])
+         p[i][2] = m*v[i]/(sqrt(1-v[i]**2))
    
     normconst = 1/((2./m*k*T)**((dim-1)/2.)/sqrt(pi) *sp.kv((dim+1)/2.,(1.*m)/(k*T)))#*Gamma((dim/2.)))
     momentumx = zeros([1,n])
@@ -101,7 +107,7 @@ def boostDist(p,T,m,n,dim,beta):
         momentum[0,i] =  sqrt(sum(p[i]**2))
     g= 0
     for a in momlength:
-        Dist[0,g] = 4*normconst*(n*dp)*a**2*hyperGeom((5/2),0.25*(gamma*beta[0]*a/T)**2)*e**(-gt*sqrt(a**2 + m2))
+        Dist[0,g] = normconst*(n*dp)*a**2*hyperGeom((5/2),0.25*(gamma*beta[0]*a/T)**2)*e**(-gt*sqrt(a**2 + m2))
         g += 1
     weights = ones([1,n])
     subplot(311)
@@ -128,6 +134,38 @@ def boostDist(p,T,m,n,dim,beta):
     plot(momlength,Dist[0])
     show()
     
+def pz(p,T,m,n,dim,beta):
+    pcpy = copy(p)
+    print(beta[0])
+    pb = -10
+    pf = 10
+    dp = 0.1
+    m2 = m**2
+    gamma = 1/sqrt(1-beta[0]**2)
+    norm = 1/numIntegral(JuttnerDist,-100,100,args=(m,dim,gamma,T,beta))
+    normconst = 1/(sqrt(2*pi*T)*m**((dim+1)/2)*gamma**((dim/2) -2)*sp.kv((dim+1)/2,m/T))
+    momrange= arange(pb,pf,dp)
+    print(norm)
+    print(normconst)
+    Juttner = zeros(len(momrange))
+    momz = zeros(n)
+    v = zeros(n)
+    for i in xrange(n):
+         v[i] = pcpy[i][2]/sqrt(m2+ pcpy[i].dot(pcpy[i]))
+         v[i] = (v[i] + beta[0])/(1+beta[0]*v[i])
+         pcpy[i][2] = m*v[i]/(sqrt(1-v[i]**2))
+   
+    for i in xrange(n):
+        momz[i] = pcpy[i][2]
+    g = 0
+    for x in momrange:
+        Juttner[g] = n*dp*norm*(x**2 + m2)**(dim/4)*sp.kv(dim/2,sqrt(x**2 +m2)*gamma/T)*e**(gamma*beta[0]*x/T)
+        g += 1
+    weights = ones([1,n])
+    y,binEdges=np.histogram(momz,bins=len(momrange),range=(pb,pf),weights=weights[0])
+    menStd = sqrt((y-(y/n)))
+    errorbar(momrange,y, yerr=menStd, fmt='ro') 
+    plot(momrange,Juttner)
 #*(1/hyperGeom((dim+2)/2,0.25*(gamma*beta*a/T)**2))
         
         
